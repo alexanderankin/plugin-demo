@@ -1,0 +1,13 @@
+rootProject.name = 'plugin-demo'
+include 'plugin-implementation'
+
+/*
+    This one is not included, as it depends on the above.
+
+    You will have to run gradle in the root project to publish the plugin it 'consumes'
+
+    If there is a way to configure this subproject after
+    a task in the other one runs (seems to go against gradle design)
+    then this can be included as a subproject also.
+*/
+// include 'plugin-consumer'

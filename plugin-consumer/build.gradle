@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'demo.plugin' version '0.1-SNAPSHOT'
+}
+
+defaultTasks('test', 'demoPluginGreeting')
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+dependencies {
+    // Use JUnit Jupiter for testing.
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
+
+    // http client
+    implementation('io.projectreactor.netty:reactor-netty-http:1.1.0')
+}
+
+tasks.withType(Test) { useJUnitPlatform() }

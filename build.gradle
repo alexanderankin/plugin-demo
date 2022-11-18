@@ -1,0 +1,7 @@
+tasks.register('pluginConsumer', Exec) {
+    it.workingDir('plugin-consumer')
+    it.executable('./gradlew')
+    it.environment(System.getenv())
+}
+
+defaultTasks(':plugin-implementation:publishToMavenLocal', 'pluginConsumer')

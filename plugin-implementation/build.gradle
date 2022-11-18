@@ -1,0 +1,49 @@
+plugins {
+    id 'java-gradle-plugin'
+    // id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '1.1.0'
+}
+
+group 'demo.plugin.implementation'
+version '0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+publishing {
+    repositories.mavenLocal()
+}
+
+gradlePlugin {
+    plugins {
+        greeting {
+            id = 'demo.plugin'
+            implementationClass = 'demo.plugin.implementation.DemoPlugin'
+        }
+    }
+}
+
+// silence gradlePlugin warnings
+tasks.withType(Javadoc) { enabled false }
+
+// Add a source set for the functional test suite
+sourceSets { functionalTest }
+gradlePlugin.testSourceSets(sourceSets.functionalTest)
+configurations.functionalTestImplementation.extendsFrom(configurations.testImplementation)
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+}
+
+tasks.withType(Test) { useJUnitPlatform() }
+
+// Add a task to run the functional tests
+tasks.register('functionalTest', Test) {
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+}
+tasks.named('check') { dependsOn(tasks.functionalTest) }
