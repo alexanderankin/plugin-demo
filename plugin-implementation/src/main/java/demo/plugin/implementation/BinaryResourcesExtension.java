@@ -1,11 +1,17 @@
 package demo.plugin.implementation;
 
+import org.gradle.api.Task;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Exec;
 
 import java.util.concurrent.Callable;
 
 public abstract class BinaryResourcesExtension {
+    /**
+     * @return type of task to provide the binary resource for
+     */
+    abstract public Property<Class<? extends Task>> getTaskType();
+
     /**
      * ...
      *
