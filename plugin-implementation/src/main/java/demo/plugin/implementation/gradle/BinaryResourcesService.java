@@ -37,4 +37,8 @@ public abstract class BinaryResourcesService implements BuildService<BinaryResou
         ListProperty<String> getArguments();
     }
 
+    @Override
+    public void close() throws Exception {
+        // todo
+    }
 }

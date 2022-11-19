@@ -1,3 +1,5 @@
+import demo.plugin.implementation.impl.extservices.impl.BackgroundType
+
 plugins {
     id 'java'
     id 'demo.plugin' version '0.1-SNAPSHOT'
@@ -40,4 +42,19 @@ binaryResources {
             return false
         }
     }
+}
+
+externalServices {
+    defaultBackgroundType.set(BackgroundType.FIRST_LAST)
+    services {
+        create('def')
+    }
+    // externalServices.services.create('abc')
+    // externalService {
+    //     create('abc')
+    // }
+}
+
+externalServicesServices {
+    create('abc')
 }
