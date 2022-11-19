@@ -13,5 +13,9 @@ public class DemoPlugin implements Plugin<Project> {
             task.setGroup(BasePlugin.BUILD_GROUP);
             task.doLast(t -> System.out.println("hi from demoPluginGreeting task"));
         });
+
+        project.getExtensions().create("binaryResources", BinaryResourcesExtension.class);
+        project.getGradle().getTaskGraph().whenReady(new BinaryResources.BinaryResourcesRegistrationAction(project));
+        new BinaryResources.BinaryResourcesRegistrationAction(project);
     }
 }

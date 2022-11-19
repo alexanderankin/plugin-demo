@@ -1,9 +1,11 @@
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 public class TestShowingDemoPlugin {
+    @Disabled
     @Test
     void test() {
         HttpClientResponse httpClientResponse = HttpClient.create().get().uri("http://localhost:3000").response().blockOptional().orElseThrow();

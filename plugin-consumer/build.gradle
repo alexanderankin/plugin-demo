@@ -19,3 +19,25 @@ dependencies {
 }
 
 tasks.withType(Test) { useJUnitPlatform() }
+
+// binaryResources.execTask.set null
+binaryResources {
+    execTask.set tasks.create('startDep', Exec) {
+        it.description('starts a dependency')
+        it.group('build setup')
+        it.executable('/home/toor/.yarn/bin/http-server')
+    }
+
+    readinessProbe.set () -> {
+        try {
+            project.exec {
+                executable('/bin/sh')
+                args('-c',
+                        'while ! nc -z localhost 3000 ; do sleep 1; done;')
+            }.rethrowFailure()
+            return true
+        } catch(Throwable ignored) {
+            return false
+        }
+    }
+}
