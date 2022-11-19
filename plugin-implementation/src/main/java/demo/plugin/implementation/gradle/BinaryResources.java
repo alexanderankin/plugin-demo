@@ -33,14 +33,13 @@ public class BinaryResources {
      * and {@link Task#doLast(Action)} callbacks.
      */
     @SuppressWarnings("Convert2Lambda")
-    public static void register(Project project) {
-        project.afterEvaluate(new Action<>() {
+    public static void register(BrePlugin brePlugin) {
+        brePlugin.getProject().afterEvaluate(new Action<>() {
             @Override
             public void execute(@NonNull Project project) {
                 // instantiate
                 BinaryResources binaryResources =
-                        new BinaryResources(project.getExtensions()
-                                .getByType(BinaryResourcesExtension.class));
+                        new BinaryResources(brePlugin.breWithDefaults());
 
                 // attach to tasks
                 project.getTasks()
