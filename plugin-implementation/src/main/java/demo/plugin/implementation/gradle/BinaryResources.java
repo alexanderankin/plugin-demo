@@ -1,4 +1,4 @@
-package demo.plugin.implementation;
+package demo.plugin.implementation.gradle;
 
 import lombok.Getter;
 import lombok.NonNull;

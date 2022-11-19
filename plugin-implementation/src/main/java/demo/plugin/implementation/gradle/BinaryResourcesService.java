@@ -1,5 +1,6 @@
-package demo.plugin.implementation;
+package demo.plugin.implementation.gradle;
 
+import demo.plugin.implementation.DemoPlugin;
 import lombok.SneakyThrows;
 import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;

@@ -1,4 +1,4 @@
-package demo.plugin.implementation;
+package demo.plugin.implementation.gradle;
 
 import org.gradle.api.Task;
 import org.gradle.api.provider.Property;
