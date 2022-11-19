@@ -16,15 +16,11 @@ public class BinaryResources {
     private final BinaryResourcesExtension ext;
     private final AtomicInteger testStartedCounter;
     private final Action<Task> testConfigurer;
-    private final Action<Task> startCb;
-    private final Action<Task> endCb;
 
     public BinaryResources(BinaryResourcesExtension ext) {
         this.ext = ext;
         testStartedCounter = new AtomicInteger();
         testConfigurer = new TestConfigurer();
-        startCb = new RunnableTaskAction(this::start);
-        endCb = new RunnableTaskAction(this::end);
     }
 
     /**
@@ -96,10 +92,18 @@ public class BinaryResources {
      * will configure a test with a {@link BinaryResources} instance
      */
     private class TestConfigurer implements Action<Task> {
+        private final Action<Task> startCb;
+        private final Action<Task> endCb;
+
+        TestConfigurer() {
+            startCb = new RunnableTaskAction(BinaryResources.this::start);
+            endCb = new RunnableTaskAction(BinaryResources.this::end);
+        }
+
         @Override
         public void execute(@NonNull Task test) {
-            test.doFirst(startCb());
-            test.doLast(endCb());
+            test.doFirst(startCb);
+            test.doLast(endCb);
         }
     }
 }
