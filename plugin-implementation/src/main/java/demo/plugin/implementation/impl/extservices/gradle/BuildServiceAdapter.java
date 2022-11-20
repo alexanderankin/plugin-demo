@@ -1,5 +1,6 @@
 package demo.plugin.implementation.impl.extservices.gradle;
 
+import com.sun.net.httpserver.HttpServer;
 import demo.plugin.implementation.impl.extservices.ExternalServicesConfiguration;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -11,24 +12,35 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceSpec;
 
+import java.net.InetSocketAddress;
 import java.util.Optional;
 
 public abstract class BuildServiceAdapter implements BuildService<BuildServiceAdapter.Params>, AutoCloseable {
     private final Task end;
+    HttpServer httpServer;
 
+    @SneakyThrows
     public BuildServiceAdapter() {
-        ExternalServicesConfiguration.ExternalService externalService = getParameters().getExternalService().get();
-        end = externalService.end().map(this::lookup).orElse(null);
-
-        Task startTask = lookup(externalService.start().orElseThrow(() -> new IllegalStateException("no start task specified")));
-
-        execute(startTask);
+        System.out.println("hi from shared service!!");
+        httpServer = HttpServer.create();
+        httpServer.createContext("/", c -> {
+            c.sendResponseHeaders(200, 0); c.close();
+        });
+        httpServer.bind(new InetSocketAddress("localhost", 3000), 0);
+        httpServer.start();
+        end = null;
+        // ExternalServicesConfiguration.ExternalService externalService = getParameters().getExternalService().get();
+        // end = externalService.end().map(this::lookup).orElse(null);
+        //
+        // Task startTask = lookup(externalService.start().orElseThrow(() -> new IllegalStateException("no start task specified")));
+        //
+        // execute(startTask);
 
     }
 
-    Task lookup(String name) {
-        return lookup(getParameters().getProject().get(), name);
-    }
+    // Task lookup(String name) {
+    //     return lookup(getParameters().getProject().get(), name);
+    // }
 
     Task lookup(Project project, String name) {
         return Optional.ofNullable(project.getTasks().findByName(name))
@@ -46,6 +58,7 @@ public abstract class BuildServiceAdapter implements BuildService<BuildServiceAd
     @SneakyThrows
     @Override
     public void close() {
+        httpServer.stop(0);
         if (end == null) return;
         execute(end);
     }
@@ -57,14 +70,14 @@ public abstract class BuildServiceAdapter implements BuildService<BuildServiceAd
                 @Override
                 public void execute(@NonNull BuildServiceSpec<Params> spec) {
                     Params parameters = spec.getParameters();
-                    parameters.getExternalService().set(service);
-                    parameters.getProject().set(project);
+                    // parameters.getExternalService().set(service);
+                    // parameters.getProject().set(project);
                 }
             };
         }
 
-        Property<ExternalServicesConfiguration.ExternalService> getExternalService();
+        // Property<ExternalServicesConfiguration.ExternalService> getExternalService();
 
-        Property<Project> getProject();
+        // Property<Project> getProject();
     }
 }

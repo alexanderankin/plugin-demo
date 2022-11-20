@@ -40,7 +40,8 @@ public class ExternalServicesManager {
     }
 
     void bgWithGradleService(ExternalService service) {
-        Stream<Project.Task> tasks = filter(service);
+        List<Project.Task> tasks = filter(service).collect(Collectors.toList());
+        tasks = defaultTestTask(tasks);
 
         Runnable startService = project.registerService(service);
 
@@ -49,13 +50,9 @@ public class ExternalServicesManager {
     }
 
     void bgWithTaskGraph(ExternalService service) {
-        Stream<Project.Task> tasks = filter(service);
+        List<Project.Task> tasks = filter(service).collect(Collectors.toList());
 
-        List<Project.Task> taskList = Optional.of(tasks.collect(Collectors.toList()))
-                .filter(Predicate.not(List::isEmpty))
-                .orElseGet(() -> List.of(project.tasks().stream()
-                        .filter(e -> e.name().equalsIgnoreCase("test"))
-                        .findAny().orElseThrow()));
+        List<Project.Task> taskList = defaultTestTask(tasks);
         log.warn("tasks are: {} (without filtering: {})",
                 taskList,
                 project.tasks().stream().map(Project.Task::name).collect(Collectors.toList()));
@@ -64,6 +61,14 @@ public class ExternalServicesManager {
             task.needsBefore(service.start().orElseThrow(() -> new IllegalArgumentException("missing start task")));
         });
         service.end().ifPresent(end -> taskList.forEach(task -> task.needsAfter(end)));
+    }
+
+    private List<Project.Task> defaultTestTask(List<Project.Task> tasks) {
+        return Optional.of(tasks)
+                .filter(Predicate.not(List::isEmpty))
+                .orElseGet(() -> List.of(project.tasks().stream()
+                        .filter(e -> e.name().equalsIgnoreCase("test"))
+                        .findAny().orElseThrow()));
     }
 
     void bgWithFirstLast(ExternalService service) {
