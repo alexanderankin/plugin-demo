@@ -44,18 +44,46 @@ binaryResources {
     }
 }
 
-tasks.create('startDef', Exec) {
+Process p
+
+tasks.create('startDefStart') {
+    it.description('starts a dependency')
+    it.group('build setup')
+    doFirst {
+        p = new ProcessBuilder('npx', 'http-server', '-p', '3000')
+                .inheritIO()
+                .start()
+    }
+}
+
+tasks.register('startDefEnd') {
+    doFirst {
+        println 'hello from startDefEnd'
+        p.destroy()
+    }
+}
+
+tasks.create('startDefWait', Exec) {
+    it.dependsOn('startDefStart')
+    doFirst {
+        println 'hello from startDefWait'
+    }
     executable('/bin/sh')
     args('-c',
             'while ! nc -z localhost 3000 ; do sleep 1; done;')
 }
 
+// unfortunately this is still necessary
+test { finalizedBy 'startDefEnd' }
+
 externalServices {
     defaultBackgroundType.set(BackgroundType.TASK_GRAPH)
     services {
         create('def') {
-            start.set 'startDef'
-            // taskTypes.add Test
+            start.set 'startDefWait'
+            end.set 'startDefEnd'
+
+            taskTypes.add Test // is already the default
         }
     }
     // externalServices.services.create('abc')

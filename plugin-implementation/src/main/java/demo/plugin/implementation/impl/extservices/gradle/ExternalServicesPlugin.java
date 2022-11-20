@@ -8,6 +8,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceRegistration;
@@ -24,7 +25,7 @@ public class ExternalServicesPlugin implements Plugin<Project> {
 
         project.afterEvaluate(new Action<>() {
             @Override
-            public void execute(@NonNull Project project) {
+            public void execute(@NonNull Project teg) {
                 ExternalServicesExtension ese = project.getExtensions().getByType(ExternalServicesExtension.class);
                 new ExternalServicesManager(new ProjectWrapper(project), ese).init();
             }
@@ -148,6 +149,7 @@ public class ExternalServicesPlugin implements Plugin<Project> {
 
             @Override
             public void needsAfter(String other) {
+                System.out.println("adding " + other + " to " + task + "'s finalizedBy");
                 if (null != getByName(other)) task.getFinalizedBy().getDependencies(task).add(getByName(other));
             }
 

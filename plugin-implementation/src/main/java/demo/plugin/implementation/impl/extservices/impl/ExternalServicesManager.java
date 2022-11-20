@@ -7,8 +7,10 @@ import org.gradle.api.tasks.testing.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -32,6 +34,7 @@ public class ExternalServicesManager {
     public void init() {
         for (ExternalService service : ese.services()) {
             BackgroundType backgroundType = service.backgroundType().orElse(ese.defaultBackgroundType().orElse(DEFAULT_BG_TYPE));
+            log.warn("configuring {} with {}", service.getName(), backgroundType);
             bgTypes.get(backgroundType).accept(service);
         }
     }
@@ -48,8 +51,19 @@ public class ExternalServicesManager {
     void bgWithTaskGraph(ExternalService service) {
         Stream<Project.Task> tasks = filter(service);
 
-        tasks.forEach(task -> task.needsBefore(service.start().orElseThrow(() -> new IllegalArgumentException("missing start task"))));
-        service.end().ifPresent(end -> tasks.forEach(task -> task.needsAfter(end)));
+        List<Project.Task> taskList = Optional.of(tasks.collect(Collectors.toList()))
+                .filter(Predicate.not(List::isEmpty))
+                .orElseGet(() -> List.of(project.tasks().stream()
+                        .filter(e -> e.name().equalsIgnoreCase("test"))
+                        .findAny().orElseThrow()));
+        log.warn("tasks are: {} (without filtering: {})",
+                taskList,
+                project.tasks().stream().map(Project.Task::name).collect(Collectors.toList()));
+        taskList.forEach(task -> {
+            log.warn("configuring task {} to need {} before", task.name(), service.start());
+            task.needsBefore(service.start().orElseThrow(() -> new IllegalArgumentException("missing start task")));
+        });
+        service.end().ifPresent(end -> taskList.forEach(task -> task.needsAfter(end)));
     }
 
     void bgWithFirstLast(ExternalService service) {
@@ -64,11 +78,13 @@ public class ExternalServicesManager {
 
         List<String> taskNames = service.taskNames().orElseGet(List::of);
         if (!taskNames.isEmpty()) {
+            log.warn("task names are not empty, filtering by: {}", taskNames);
             tasks = tasks.filter(t -> taskNames.contains(t.name()));
         }
 
         // use reasonable default here otherwise we will track in all tasks
         List<Class<?>> taskTypes = service.taskTypes().filter(Predicate.not(List::isEmpty)).orElse(List.of(Test.class));
+        log.warn("task types: filtering by: {}", taskTypes.stream().map(Class::getName).collect(Collectors.toList()));
         tasks = tasks.filter(t -> taskTypes.stream().anyMatch(tt -> tt.isInstance(t)));
 
         return tasks;
