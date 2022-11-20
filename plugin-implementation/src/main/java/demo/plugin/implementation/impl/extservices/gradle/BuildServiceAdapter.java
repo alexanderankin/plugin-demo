@@ -63,6 +63,17 @@ public abstract class BuildServiceAdapter implements BuildService<BuildServiceAd
         execute(end);
     }
 
+    /**
+     * this will have to contain only serializable things,
+     * which means we cant have fun task interactions here
+     * <p>
+     * the means that if we wanted to use the
+     * {@link org.gradle.api.tasks.Exec} signature, for instance,
+     * to let the user specify the exec params (for convenience and familiarity)
+     * we have to recreate it here with just the data parts.
+     * <p>
+     * This means that there is even less code shared between different approaches.
+     */
     interface Params extends BuildServiceParameters {
         @SuppressWarnings("Convert2Lambda")
         static Action<BuildServiceSpec<Params>> configurer(Project project, ExternalServicesConfiguration.ExternalService service) {
