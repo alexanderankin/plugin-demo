@@ -31,10 +31,16 @@ public class BrePlugin implements Plugin<Project> {
         BinaryResources.register(this);
 
         // if you wait after evaluating, you can just register the shared service with the extension data
-        project.afterEvaluate(new Action<>() {
+        project.afterEvaluate(new Action<Project>() {
+            BinaryResourcesExtension bre;
+
             @Override
             public void execute(@NonNull Project project) {
-                BinaryResourcesExtension bre = breWithDefaults();
+                bre = breWithDefaults();
+                if (bre.getExecTask().isPresent()) registerExec();
+            }
+
+            void registerExec() {
                 Provider<BinaryResourcesService> provider = project.getGradle().getSharedServices()
                         .registerIfAbsent("binaryResourcesService",
                                 BinaryResourcesService.class,

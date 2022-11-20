@@ -44,17 +44,22 @@ binaryResources {
     }
 }
 
+tasks.create('startDef', Exec) {
+    executable('/bin/sh')
+    args('-c',
+            'while ! nc -z localhost 3000 ; do sleep 1; done;')
+}
+
 externalServices {
-    defaultBackgroundType.set(BackgroundType.FIRST_LAST)
+    defaultBackgroundType.set(BackgroundType.TASK_GRAPH)
     services {
-        create('def')
+        create('def') {
+            start.set 'startDef'
+            // taskTypes.add Test
+        }
     }
     // externalServices.services.create('abc')
     // externalService {
     //     create('abc')
     // }
-}
-
-externalServicesServices {
-    create('abc')
 }

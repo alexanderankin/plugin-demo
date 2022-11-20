@@ -1,5 +1,7 @@
 package demo.plugin.implementation.impl.extservices.gradle;
 
+import demo.plugin.implementation.DemoPlugin;
+import demo.plugin.implementation.impl.extservices.ExternalServicesConfiguration;
 import demo.plugin.implementation.impl.extservices.impl.BackgroundType;
 import lombok.ToString;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -7,13 +9,20 @@ import org.gradle.api.Task;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 /**
  * DSL interface for configuring external services provided during a build
  */
-public abstract class ExternalServicesExtension {
+public abstract class ExternalServicesExtension implements ExternalServicesConfiguration {
+    // private NamedDomainObjectContainer<ExternalService> services;
 
     @Inject
     public abstract ObjectFactory getObjectFactory();
@@ -23,14 +32,40 @@ public abstract class ExternalServicesExtension {
      */
     abstract public Property<BackgroundType> getDefaultBackgroundType();
 
-    public NamedDomainObjectContainer<ExternalService> services;
-
     /**
+     * <pre>
+     *     externalServices {
+     *         services {
+     *             abc {
+     *                 start 'startAbc'
+     *                 end 'endAbc'
+     *                 ...
+     *             }
+     *             create('def') {
+     *                 start tasks.create('startDef', Exec) { ... }
+     *                 ...
+     *             }
+     *         }
+     *     }
+     * </pre>
+     *
      * @return services which are made available to the tasks
      */
-    public NamedDomainObjectContainer<ExternalService> getServices() {
-        if (services == null) services = ndoc(getObjectFactory(), ExternalService.class);
-        return services;
+    public abstract NamedDomainObjectContainer<ExternalService> getServices()
+    ;
+    // {
+    //     if (services == null) services = ndoc(getObjectFactory(), ExternalService.class);
+    //     return services;
+    // }
+
+    @Override
+    public Optional<BackgroundType> defaultBackgroundType() {
+        return DemoPlugin.of(getDefaultBackgroundType());
+    }
+
+    @Override
+    public Set<ExternalService> services() {
+        return getServices();
     }
 
     /**
@@ -45,7 +80,7 @@ public abstract class ExternalServicesExtension {
      * model per-service configuration
      */
     @ToString
-    static abstract public class ExternalService {
+    static abstract public class ExternalService implements ExternalServicesConfiguration.ExternalService {
         private final String name;
 
         /**
@@ -87,5 +122,26 @@ public abstract class ExternalServicesExtension {
          * @return name of the task that turns off the external service (optional)
          */
         abstract public Property<String> getEnd();
+
+        public Optional<BackgroundType> backgroundType() {
+            return DemoPlugin.of(getBackgroundType());
+        }
+
+        @SuppressWarnings("unchecked") // narrowing
+        public Optional<List<Class<?>>> taskTypes() {
+            return DemoPlugin.of(getTaskTypes()).map(List.class::cast);
+        }
+
+        public Optional<List<String>> taskNames() {
+            return DemoPlugin.of(getTaskNames());
+        }
+
+        public Optional<String> start() {
+            return DemoPlugin.of(getStart());
+        }
+
+        public Optional<String> end() {
+            return DemoPlugin.of(getEnd());
+        }
     }
 }

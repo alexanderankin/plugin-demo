@@ -34,5 +34,6 @@ public enum BackgroundType {
      * it might cause a new external service
      * to be created for each affected task.
      */
+    // todo fix stack overflow error (in project.execute)
     FIRST_LAST,
 }
